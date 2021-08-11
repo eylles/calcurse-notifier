@@ -8,6 +8,7 @@ Simply add something like the following to your crontab to enable. This line wil
 ```
 
 Dependencies:
+
 `libnotify`
 
 `calcurse`
