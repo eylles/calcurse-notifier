@@ -9,6 +9,9 @@ Simply add something like the following to your crontab to enable. This line wil
 
 Dependencies:
 `libnotify`
+
 `calcurse`
+
 `bc` (shell calculator) and `date`, which should be present on almost every UNIX-like system
+
 optionally `feedbackd`
