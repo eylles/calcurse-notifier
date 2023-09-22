@@ -28,21 +28,25 @@ if ! [ "$(calcurse -n)" = "" ] ; then #There is an event today with an associate
     if [ "$notify_boolean" = 1 ] ; then
         eventname="$(calcurse -n | sed -n 2p | sed 's/^   \[..:..\] //g')"
         event_in="$(calcurse -n | sed -n 2p | sed 's/^   \[//g' | sed 's/\].*//g')"
-        notify-send "Appointment: ${eventname} in ${event_in}"
-        fbcli -t -1 -E message-new-instant 2>&1 >/dev/null || true #send a request to vibrate and make sound with feedbackd if possible
+        notify-send -i calendar "Appointment:" "${eventname} in ${event_in}"
+        # fbcli -t -1 -E message-new-instant 2>&1 >/dev/null || true #send a request to vibrate and make sound with feedbackd if possible
     fi
 fi
 
-tomorrow="$(date --date 'next day' +"%Y-%m-%d")"
-daily_events="$(calcurse -a -d 2 | tr "\n" "@" | sed "0,/^.*${tomorrow}/ s///" | sed 's/^:@ \* //g' | sed 's/@ \* /, /g' | sed 's/@$//g' )" #Gives list of daily events tomorrow, Hopefully your event doesn't have "@" in it
+calcurse_config=~/.config/calcurse/conf
+date_format="$(grep 'outputdate' "$calcurse_config" | tr '=' '\t' | cut -f 2)"
+tomorrow="$(date --date 'next day' +"$date_format")"
+# echo "$tomorrow"
+# daily_events="$(calcurse -a -d 2 | tr "\n" "@" | sed "0,/^.*${tomorrow}/ s///" | sed 's/^:@ \* //g' | sed 's/@ \* /, /g' | sed 's/@$//g' )" #Gives list of daily events tomorrow, Hopefully your event doesn't have "@" in it
+daily_events="$(calcurse -a -d 2 | tr "\n" "@" | sed 's|@@|\n|;s|@$|\n|' | grep "${tomorrow}" | sed "0,/^.*${tomorrow}/ s///" | sed 's/^:@ *//g;s/@\t/ : /g;s/@ /, /')" #Gives list of daily events tomorrow, Hopefully your event doesn't have "@" in it
 if ! [ "$daily_events" = "" ] ; then 
     current_hour="$(date +"%H")"
-    current_minute="$(date +"%H")"
+    current_minute="$(date +"%M")"
     minutes_today=$(( $current_hour * 60 + $current_minute )) #Minutes that have elapsed today
     minutes_left_today=$(( 24*60 - $minutes_today )) #Minutes elapsed at midnight
-    notify_boolean_2="$(echo "$minutes_left_today <= ($script_frequency*0.95 + $notify_within)" | bc )" #It is $notify_within minutes of midnight!
+    notify_boolean_2="$(echo "$minutes_left_today <= ($script_frequency*0.95 + $notify_within)" | bc)" #It is $notify_within minutes of midnight!
     if [ "$notify_boolean_2" = 1 ] ; then
-        notify-send "Daily Events: $daily_events"
-        fbcli -t -1 -E message-new-instant 2>&1 >/dev/null || true #send a request to vibrate and make sound with feedbackd if possible
+        notify-send -i calendar "Daily Events:" "$daily_events"
+        # fbcli -t -1 -E message-new-instant 2>&1 >/dev/null || true #send a request to vibrate and make sound with feedbackd if possible
     fi
 fi
